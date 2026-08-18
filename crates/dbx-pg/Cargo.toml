@@ -1,0 +1,11 @@
+[package]
+name = "dbx-pg"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+dbx-core = { path = "../dbx-core" }
+async-trait.workspace = true
+tokio.workspace = true
+tokio-postgres.workspace = true
+tracing.workspace = true

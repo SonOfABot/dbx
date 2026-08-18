@@ -1,0 +1,12 @@
+[package]
+name = "dbx-mysql"
+version = "0.1.0"
+edition = "2021"
+description = "dbx protocol driver: MySQL / MariaDB"
+license = "BSD-2-Clause"
+
+[dependencies]
+dbx-core = { path = "../dbx-core" }
+mysql_async = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }

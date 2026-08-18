@@ -1,0 +1,10 @@
+/target
+**/*.rs.bk
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+thief/
+*.csv
+users.txt
+passwords.txt

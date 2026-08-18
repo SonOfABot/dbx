@@ -1,0 +1,13 @@
+[package]
+name = "dbx-ntlm"
+version.workspace = true
+edition.workspace = true
+license = "BSD-2-Clause"
+description = "Pure-Rust NTLMSSP (NTLMv2 incl. pass-the-hash) for TDS integrated auth. No SSPI, no system libs."
+
+[dependencies]
+md4.workspace = true
+md-5.workspace = true
+hmac.workspace = true
+rand.workspace = true
+thiserror.workspace = true
