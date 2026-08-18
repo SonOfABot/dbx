@@ -226,3 +226,4 @@ Module options: `-o KEY=VALUE`, or nxc-style custom flags — any unknown `--fla
 - **`xp_cmdshell` on SQL Server for Linux** doesn't exist (error 15392) — `check()` gates on `sys.dm_os_host_info`, so you get an honest "not possible"
 - **MySQL BLOBs** decode lossy in thief CSVs (fine for triage, not for binary loot)
 - **`--db` typo on MySQL** (1049 unknown database) fails the auth line, not just the session — by design, but it means `--db` sprays want a database that exists
+
