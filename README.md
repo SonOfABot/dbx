@@ -17,7 +17,7 @@ The database execution tool, credential spraying, enumeration, and verified post
 
 Usage: dbx [OPTIONS] <COMMAND>
 
-The database execution tool — credential spraying, enumeration and verified post-exploitation for database engines.
+The database execution tool, credential spraying, enumeration and verified post-exploitation for database engines.
 
 Commands:
   pg     Own stuff using PostgreSQL [alias: postgres]
@@ -38,7 +38,7 @@ Generic Options:
 Output Options:
       --only-success    Hide [-] failures; show fingerprints, hits and the tally
       --only-pwned      Print only privileged (Pwn3d!) hits
-  -q, --quiet           Successes only, nothing else — pure grep output
+  -q, --quiet           Successes only, nothing else, pure grep output
   -v, --verbose         Verbose: error codes, retries, backoff notices
       --no-progress     Do not display the progress bar during sprays
       --log <FILE>      Export results to a log file
@@ -61,11 +61,11 @@ I only used postgres and mysql in the engagement, but then I saw the potential f
 
 ## Design principles
 
-- **nxc-identical UX** — `dbx <proto> <targets> -u user -p pass`. `[+]` for hits, `(Pwn3d!)` for admins, `[-]` dimmed failures, `[*]` info, `[M]` module output, progress bar included.
-- **Verify-then-execute** — every module has a `check()` that proves the primitive is possible *without mutating state*, then a `run()` that uses it. "Check says yes but run says no" is treated as a bug and turned into a new check condition.
-- **Opsec tiers** — `GREEN` (read-only), `AMBER` (executes / temp state, restored), `RED` (persistent artifacts — blocked unless `--force`).
-- **Droppable binaries** — rustls everywhere, OpenSSL banned, sqlite bundled. Build a static musl binary, drop it on a pivot box, done.
-- **Loot** — every hit is written to the sqlite store *before* it's printed. If the terminal dies, the loot survives.
+- **nxc-identical UX**: `dbx <proto> <targets> -u user -p pass`. `[+]` for hits, `(Pwn3d!)` for admins, `[-]` dimmed failures, `[*]` info, `[M]` module output, progress bar included.
+- **Verify-then-execute**: every module has a `check()` that proves the primitive is possible *without mutating state*, then a `run()` that uses it. "Check says yes but run says no" is treated as a bug and turned into a new check condition.
+- **Opsec tiers**: `GREEN` (read-only), `AMBER` (executes / temp state, restored), `RED` (persistent artifacts: blocked unless `--force`).
+- **Droppable binaries**: rustls everywhere, OpenSSL banned, sqlite bundled. Build a static musl binary, drop it on a pivot box, done.
+- **Loot**: every hit is written to the sqlite store *before* it's printed. If the terminal dies, the loot survives.
 
 ## Workspace layout
 
@@ -112,7 +112,7 @@ dbx pg 10.0.0.0/24 -u postgres -p rockyou.txt --only-success
 |---|---|
 | `--only-success` | Hide `[-]` failures; show hits, info, tally |
 | `--only-pwned` | Print only admin `(Pwn3d!)` hits |
-| `-q, --quiet` | Successes only — pure grep output |
+| `-q, --quiet` | Successes only, pure grep output |
 | `-v, --verbose` | Debug logging (unmutes driver internals) |
 | `--no-progress` | No progress bar |
 | `-t, --threads N` | Concurrent auths (default 100) |
@@ -127,7 +127,7 @@ dbx mssql 10.0.0.5 -u sa -p 'Passw0rd!' --tables --skip-system   # hide master/m
 ```
 
 - `--dbs` / `--tables` / `--thief-all` all honor `--skip-system` (MySQL: `information_schema`, `mysql`, `performance_schema`, `sys` · MSSQL: `master`, `model`, `msdb`, `tempdb` · PG: `template*`)
-- Empty databases print a dimmed `db: no user tables` — silence is never ambiguous
+- Empty databases print a dimmed `db: no user tables`
 - PG tables print schema-qualified (`public.users`) and `--thief` takes the same form
 
 ### Loot
@@ -137,7 +137,7 @@ dbx loot creds                    # every captured credential
 dbx loot creds --protocol mysql   # filtered
 ```
 
-Store: `~/.dbx/loot.db` (sqlite) — tables: `credentials`, `databases`, `verified_primitives`, `module_runs`. Override with `--loot-db`.
+Store: `~/.dbx/loot.db` (sqlite), tables: `credentials`, `databases`, `verified_primitives`, `module_runs`. Override with `--loot-db`.
 
 ### Data theft
 
@@ -158,7 +158,7 @@ dbx pg 10.0.0.5 -u postgres -p x -M copy-rce --cmd 'id'       # run with options
 dbx pg 10.0.0.5 -u postgres -p x -M file-read --path /etc/passwd
 ```
 
-Module options: `-o KEY=VALUE`, or nxc-style custom flags — any unknown `--flag value` becomes `FLAG=value` (`--atk-ip 10.0.0.9` → `ATK_IP=10.0.0.9`); a bare `--flag` becomes `FLAG=true`.
+Module options: `-o KEY=VALUE`, or nxc-style custom flags, any unknown `--flag value` becomes `FLAG=value` (`--atk-ip 10.0.0.9` → `ATK_IP=10.0.0.9`); a bare `--flag` becomes `FLAG=true`.
 
 ## Module catalog
 
@@ -169,8 +169,8 @@ Module options: `-o KEY=VALUE`, or nxc-style custom flags — any unknown `--fla
 | `enum-roles` | GREEN | All roles with privilege flags (superuser, createrole, createdb, login, replication) |
 | `enum-privs` | GREEN | Current user's privileges/role memberships; flags RCE-relevant server roles |
 | `copy-rce` | AMBER | RCE via `COPY TO PROGRAM`. `--cmd` runs a command with output capture; `--atk-ip/--atk-port` fires a reverse shell |
-| `file-read` | GREEN | `pg_read_file` — read server files |
-| `file-write` | RED | `COPY TO FILE` — webshell/key staging |
+| `file-read` | GREEN | `pg_read_file`, read server files |
+| `file-write` | RED | `COPY TO FILE`, webshell/key staging |
 
 ### MSSQL
 
@@ -184,12 +184,12 @@ Module options: `-o KEY=VALUE`, or nxc-style custom flags — any unknown `--fla
 
 | Module | Opsec | What it does |
 |---|---|---|
-| `enum-users` | GREEN | `mysql.user` — accounts, auth plugin, password hashes (caching_sha2 → hashcat 7401) |
+| `enum-users` | GREEN | `mysql.user`, accounts, auth plugin, password hashes (caching_sha2 → hashcat 7401) |
 | `enum-privs` | GREEN | `SHOW GRANTS`, dangerous privileges flagged |
 | `enum-vars` | GREEN | Attack-relevant variables (`plugin_dir`, `secure_file_priv`, log settings…) |
 | `file-read` | GREEN | `LOAD_FILE()` with `secure_file_priv` awareness |
-| `file-write` | RED | `INTO DUMPFILE` — refuses to overwrite, prefix-aware |
-| `udf-rce` | RED | Uploads `lib_mysqludf_sys.so` to `plugin_dir`, `CREATE FUNCTION`, then `--cmd` executes with stdout capture (`sys_eval`). Idempotent — once deployed, `--cmd` alone works |
+| `file-write` | RED | `INTO DUMPFILE`, refuses to overwrite, prefix-aware |
+| `udf-rce` | RED | Uploads `lib_mysqludf_sys.so` to `plugin_dir`, `CREATE FUNCTION`, then `--cmd` executes with stdout capture (`sys_eval`). Idempotent, once deployed, `--cmd` alone works |
 | `log-rce` | RED | `general_log` poisoning into a web path, original settings restored |
 
 ## Currently supported auth
@@ -198,13 +198,13 @@ Module options: `-o KEY=VALUE`, or nxc-style custom flags — any unknown `--fla
 |---|---|
 | PGSQL | cleartext / MD5 / SCRAM-SHA-256 (whatever the server asks, via tokio-postgres) |
 | MSSQL | SQL logins (local auth) |
-| MYSQL | `mysql_native_password`, `caching_sha2_password` (MySQL 8 default, RSA key exchange — no TLS needed) |
+| MYSQL | `mysql_native_password`, `caching_sha2_password` (MySQL 8 default, RSA key exchange, no TLS needed) |
 
-## Roadmap — what's not built yet
+## Roadmap: what's not built yet
 
 ### In flight: Windows auth for MSSQL (Stage 2)
 
-`dbx-ntlm` is done and test-green (NT hash, NTOWFv2, NTLMv2 responses, MIC — with pass-the-hash producing byte-identical messages to password auth). Remaining:
+`dbx-ntlm` is done and test-green (NT hash, NTOWFv2, NTLMv2 responses, MIC, with pass-the-hash producing byte-identical messages to password auth). Remaining:
 
 - [ ] Patch/vendor tiberius: `AuthMethod::ntlm`, LOGIN7 `fIntSecurity` bit, Type 1 in the SSPI field, Type 3 in a `0x11` packet sent **unencrypted** (the asymmetric-TLS landmine)
 - [ ] CLI: `-d/--domain`, `DOMAIN\user` auto-detection, `-H/--hashes :NTHASH` (pass-the-hash), `--local-auth` to force SQL auth
@@ -214,7 +214,7 @@ Module options: `-o KEY=VALUE`, or nxc-style custom flags — any unknown `--fla
 
 - [ ] **Redis driver** (listed in the help footer as under development)
 - [ ] **Safety rails**: `--jitter` and lockout-aware backoff (flags parse today, engine ignores them), `--no-bruteforce` (pair users:passwords 1:1), `--resume`
-- [ ] **`--verify` pass**: call each protocol's `fingerprint()` before spraying — protocol-confirm mystery ports on big asset lists (the trait method exists; the engine doesn't call it yet)
+- [ ] **`--verify` pass**: call each protocol's `fingerprint()` before spraying, protocol-confirm mystery ports on big asset lists (the trait method exists; the engine doesn't call it yet)
 - [ ] `--log FILE` output, JSON output mode
 - [ ] Kerberos (`-k`) after NTLM lands
 - [ ] MSSQL: pre-login version fingerprint, `enum-impersonate`, linked-server exec chains
@@ -222,8 +222,8 @@ Module options: `-o KEY=VALUE`, or nxc-style custom flags — any unknown `--fla
 
 ## Known limitations
 
-- **MariaDB `ed25519` auth** is unsupported by the mysql_async driver — surfaces as a protocol error
-- **`xp_cmdshell` on SQL Server for Linux** doesn't exist (error 15392) — `check()` gates on `sys.dm_os_host_info`, so you get an honest "not possible"
+- **MariaDB `ed25519` auth** is unsupported by the mysql_async driver, surfaces as a protocol error
+- **`xp_cmdshell` on SQL Server for Linux** doesn't exist (error 15392), `check()` gates on `sys.dm_os_host_info`, so you get an honest "not possible"
 - **MySQL BLOBs** decode lossy in thief CSVs (fine for triage, not for binary loot)
-- **`--db` typo on MySQL** (1049 unknown database) fails the auth line, not just the session — by design, but it means `--db` sprays want a database that exists
+- **`--db` typo on MySQL** (1049 unknown database) fails the auth line, not just the session, by design, but it means `--db` sprays want a database that exists
 
